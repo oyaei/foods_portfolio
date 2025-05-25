@@ -3,9 +3,25 @@ import 'my_home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'data_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'functions/notification.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 非同期処理を正しく実行するために必要
+
+// ==通知の初期化==
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation("Asia/Tokyo"));
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+// DataProvider
   final _dataProvider = DataProvider();
   await _dataProvider.loadData(); // 初期データを読み込む
 
@@ -15,6 +31,12 @@ void main() async {
       child: MainApp(),
     ),
   );
+
+  // 通知をスケジュール
+  // Future.delayed(Duration(seconds: 1), () async {
+  await scheduleDailyNotification(6, 0); // 毎朝6時
+  await scheduleDailyNotification(17, 0); // 毎夕17時
+  // });
 }
 
 class MainApp extends StatelessWidget {
